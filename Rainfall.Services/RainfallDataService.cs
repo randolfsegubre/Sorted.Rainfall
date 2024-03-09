@@ -1,53 +1,69 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Logging;
 using Rainfall.Data;
-using Rainfall.Data.Interfaces;
+using Rainfall.Services.Config;
+using Rainfall.Services.Helper;
 using Rainfall.Services.Interface;
+using System.Net;
 using System.Net.Http.Json;
 
 namespace Rainfall.Services
 {
     public class RainfallDataService : IRainfallDataService
     {
+        #region Declartions
+        private readonly ILogger<RainfallDataService> _logger;
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl;
-        private readonly string _endpointUrl;
+        private readonly IHttpClientWrapper _httpClientWapper;
+        #endregion Declartions
 
-        public RainfallDataService(IConfiguration configuration)
+        public RainfallDataService(ILogger<RainfallDataService> logger)
         {
-            // Add required services
-            var services = new ServiceCollection();
-            services.AddAuthorizationCore(); // Add authorization services
-
-            // Create and configure HttpClient instance
+            _logger = logger;
             _httpClient = new HttpClient();
-            _baseUrl = configuration.GetSection("AppSettings:BaseUrl").Value ?? string.Empty;
-            _endpointUrl = configuration.GetSection("AppSettings:EndPointUrl").Value ?? string.Empty;
-            _httpClient.BaseAddress = new Uri(_baseUrl);
+            _httpClientWapper = new HttpClientWrapper(_httpClient);
         }
 
-        public async Task<RainfallReadingResponse> GetRainfallDataAsync(string stationId, int count)
+
+        /// <summary>
+        /// Method to get rainfall from external api
+        /// </summary>
+        /// <param name="stationId"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<RainfallReadingResponse> GetRainfallDataAsync(string stationId)
         {
-            // Construct the API endpoint URL
-            string formattedUri = _endpointUrl
-                    .Replace("{root}", _baseUrl)
-                    .Replace("{stationId}", stationId)
-                    .Replace("{count}", count.ToString()) ;
-
-            // Make GET request to the external API
-            HttpResponseMessage response = await _httpClient.GetAsync(formattedUri);
-
-            // Check if the request was successful
-            if (response.IsSuccessStatusCode)
+            try
             {
-                // Deserialize the JSON response into appropriate data contract classes
-                RainfallReadingResponse? rainfallData = await response.Content.ReadFromJsonAsync<RainfallReadingResponse>();
-                return rainfallData ?? throw new Exception();
+                // Construct the API endpoint URL
+                string? formattedUri = AppSettings.EndPointUrl
+                        .Replace(Constants.root, AppSettings.BaseUrl)
+                        .Replace(Constants.stationId, stationId);
+
+                // Make GET request to the external API
+                HttpResponseMessage response = await _httpClientWapper.GetAsync(formattedUri);
+
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    // Deserialize the JSON response into appropriate data contract classes
+                    RainfallReadingResponse? rainfallData = await response.Content.ReadFromJsonAsync<RainfallReadingResponse>();
+
+                    return rainfallData;
+                }
+                else
+                {
+                    // Handle error response (e.g., log error, return null)
+                    _logger.LogWarning(message: Constants.RainfallExternalApiResponseNotOk);
+
+                    // intended throw new web exception
+                    throw new WebException($"{(int)HttpStatusCode.InternalServerError} - {Constants.InternalServerErrorMsg}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Handle error response (e.g., log error, return null)
-                return null;
+                _logger.LogError(message: Constants.RainfallServiceErrorMsg, args: ex);
+                throw ex;
             }
         }
     }
