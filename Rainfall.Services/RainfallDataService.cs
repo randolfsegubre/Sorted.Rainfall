@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Rainfall.Data;
 using Rainfall.Services.Config;
+using Rainfall.Services.Helper;
 using Rainfall.Services.Interface;
 using System.Net;
 using System.Net.Http.Json;
@@ -12,12 +13,14 @@ namespace Rainfall.Services
         #region Declartions
         private readonly ILogger<RainfallDataService> _logger;
         private readonly HttpClient _httpClient;
+        private readonly IHttpClientWrapper _httpClientWapper;
         #endregion Declartions
 
         public RainfallDataService(ILogger<RainfallDataService> logger)
         {
             _logger = logger;
             _httpClient = new HttpClient();
+            _httpClientWapper = new HttpClientWrapper(_httpClient);
         }
 
 
@@ -33,12 +36,12 @@ namespace Rainfall.Services
             try
             {
                 // Construct the API endpoint URL
-                string formattedUri = AppSettings.EndPointUrl
+                string? formattedUri = AppSettings.EndPointUrl
                         .Replace(Constants.root, AppSettings.BaseUrl)
                         .Replace(Constants.stationId, stationId);
 
                 // Make GET request to the external API
-                HttpResponseMessage response = await _httpClient.GetAsync(formattedUri);
+                HttpResponseMessage response = await _httpClientWapper.GetAsync(formattedUri);
 
                 // Check if the request was successful
                 if (response.IsSuccessStatusCode)
