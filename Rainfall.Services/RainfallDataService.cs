@@ -57,13 +57,13 @@ namespace Rainfall.Services
                     _logger.LogWarning(message: Constants.RainfallExternalApiResponseNotOk);
 
                     // intended throw new web exception
-                    throw new WebException($"{HttpStatusCode.InternalServerError} - Internal Server Error");
+                    throw new WebException($"{(int)HttpStatusCode.InternalServerError} - {Constants.InternalServerErrorMsg}");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(message: Constants.RainfallServiceErrorMsg, args: ex);
-                throw;
+                throw ex;
             }
         }
     }
