@@ -1,10 +1,15 @@
-﻿using Rainfall.Data.Interface;
+﻿using Rainfall.Data.Interfaces;
+using System.Text.Json.Serialization;
 
 namespace Rainfall.Data
 {
-    // Represents the response containing a list of rainfall readings
     public class RainfallReadingResponse : IRainfallReadingResponse
     {
-        public List<RainfallReading> Readings { get; set; }
+        [JsonPropertyName("@context")]
+        public string context { get; set; }
+        public Meta meta { get; set; }
+        public List<Item> items { get; set; }
     }
+
+
 }
