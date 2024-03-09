@@ -2,18 +2,22 @@
 using Rainfall.Services.Config;
 using Rainfall.Services.Interface;
 using System.Net.Http.Json;
+using System.Reflection.Metadata;
 
 namespace Rainfall.Services
 {
     public class RainfallDataService : IRainfallDataService
     {
+        #region Declartions
         private readonly HttpClient _httpClient;
+
+        #endregion Declartions
 
         public RainfallDataService()
         {
             _httpClient = new HttpClient();
         }
-
+        
 
         /// <summary>
         /// Method to get rainfall from external api
@@ -26,9 +30,9 @@ namespace Rainfall.Services
         {
             // Construct the API endpoint URL
             string formattedUri = AppSettings.EndPointUrl
-                    .Replace("{root}", AppSettings.BaseUrl)
-                    .Replace("{stationId}", stationId)
-                    .Replace("{count}", count.ToString()) ;
+                    .Replace(Constants.root, AppSettings.BaseUrl)
+                    .Replace(Constants.stationId, stationId)
+                    .Replace(Constants.limit, count.ToString());
 
             // Make GET request to the external API
             HttpResponseMessage response = await _httpClient.GetAsync(formattedUri);
