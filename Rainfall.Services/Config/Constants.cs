@@ -9,7 +9,7 @@ namespace Rainfall.Services.Config
     public struct Constants
     {
         public const string root = "{root}";
-        public const string stationId = "{stationId}";
+        public const string stationId = "{id}";
         public const string limit = "{limit}";
 
     }

@@ -1,4 +1,5 @@
-﻿using Rainfall.Data;
+﻿using Microsoft.Extensions.Logging;
+using Rainfall.Data;
 using Rainfall.Services.Config;
 using Rainfall.Services.Interface;
 using System.Net.Http.Json;
@@ -9,12 +10,13 @@ namespace Rainfall.Services
     public class RainfallDataService : IRainfallDataService
     {
         #region Declartions
+        private readonly ILogger<RainfallDataService> _logger;
         private readonly HttpClient _httpClient;
-
         #endregion Declartions
 
-        public RainfallDataService()
+        public RainfallDataService(ILogger<RainfallDataService> logger)
         {
+            _logger = logger;
             _httpClient = new HttpClient();
         }
         
@@ -26,13 +28,12 @@ namespace Rainfall.Services
         /// <param name="count"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<RainfallReadingResponse> GetRainfallDataAsync(string stationId, int count)
+        public async Task<RainfallReadingResponse> GetRainfallDataAsync(string stationId)
         {
             // Construct the API endpoint URL
             string formattedUri = AppSettings.EndPointUrl
                     .Replace(Constants.root, AppSettings.BaseUrl)
-                    .Replace(Constants.stationId, stationId)
-                    .Replace(Constants.limit, count.ToString());
+                    .Replace(Constants.stationId, stationId);
 
             // Make GET request to the external API
             HttpResponseMessage response = await _httpClient.GetAsync(formattedUri);
