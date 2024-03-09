@@ -1,8 +1,8 @@
 using Rainfall.Data;
 using Rainfall.Data.Interfaces;
 using Rainfall.Services;
+using Rainfall.Services.Config;
 using Rainfall.Services.Interface;
-using Rainfall.WebApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
