@@ -1,7 +1,9 @@
 using Rainfall.Data;
+using Rainfall.Data.Interface;
 using Rainfall.Data.Interfaces;
 using Rainfall.Services;
 using Rainfall.Services.Config;
+using Rainfall.Services.Helper;
 using Rainfall.Services.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,9 +15,14 @@ var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSetting
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IRainfallDataService, RainfallDataService>();
-builder.Services.AddSingleton<IRainfallReadingResponse, RainfallReadingResponse>();
+builder.Services.AddSingleton<IHttpClientWrapper, HttpClientWrapper>();
+builder.Services.AddSingleton<IRainfallResponse, RainfallResponse>();
+builder.Services.AddSingleton<IRoot, Root>();
 builder.Services.AddSingleton<IItem, Item>();
 builder.Services.AddSingleton<IMeta, Meta>();
+builder.Services.AddSingleton<IErrorDetail, ErrorDetail>();
+builder.Services.AddSingleton<IErrorResponse, ErrorResponse>();
+builder.Services.AddHttpClient();
 
 // Add SwaggerGen services
 builder.Services.AddEndpointsApiExplorer();
