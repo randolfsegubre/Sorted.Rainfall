@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Rainfall.Data;
+using Rainfall.Data.Interface;
 using Rainfall.Services.Interface;
+using System.Net;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,32 +17,63 @@ public class RainfallController : ControllerBase
         _rainfallDataService = rainfallDataService;
     }
 
-    // GET: /api/rainfall/{stationId}/readings
-    // Retrieves rainfall readings for the specified stationId
+
+    /// <summary>
+    /// GET: /api/rainfall/{stationId}/readings
+    /// Retrieves rainfall readings for the specified stationId
+    /// </summary>
+    /// <param name="stationId"></param>
+    /// <returns></returns>
     [HttpGet("{stationId}", Name = "GetRainfallReadings")]
-    public async Task<IActionResult> GetRainfallReadings(string stationId)
+    public async Task<IActionResult> GetRainfallData(string stationId)
     {
+        if (string.IsNullOrEmpty(stationId))
+        {
+            return BadRequest("Station ID is required");
+        }
+
         try
         {
-            // Call service to fetch rainfall data
-            var rainfallData = await _rainfallDataService.GetRainfallDataAsync(stationId);
+            // Call the service method to get rainfall data
+            IRainfallResponse response = await _rainfallDataService.GetRainfallDataAsync(stationId);
 
-            // Return 200 OK response with rainfall data
-            return Ok(rainfallData); // Assuming rainfallData is a collection of rainfall readings
+            // Check if the operation was successful
+            if (response.Success)
+            {
+                // Check the status code and return the corresponding action
+                switch (response.StatusCode)
+                {
+                    case HttpStatusCode.OK: // 200
+                        return Ok(response);
+                    case HttpStatusCode.Accepted: // 202
+                        return Accepted(response);
+                    default:
+                        return StatusCode((int)response.StatusCode, response);
+                }
+            }
+            else
+            {
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return NotFound(response.Error);
+                }
+                else
+                {
+                    // Handle other error responses
+                    return StatusCode((int)response.StatusCode, response.Error);
+                }
+            }
         }
         catch (Exception ex)
         {
             // Log the exception
-            _logger.LogError(ex, "An error occurred while processing the request.");
+            _logger.LogError(ex, "An unexpected error occurred");
 
-            // Return 500 Internal Server Error response
-            return StatusCode(500, new ErrorResponse
-            {
-                Message = "Internal server error",
-                Details = new List<ErrorDetail>()
-            });
+            // Return 500 status code response
+            return StatusCode((int)HttpStatusCode.InternalServerError, "An unexpected error occurred");
         }
     }
+
 
     // Add other controller actions as needed...
 }
