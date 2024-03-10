@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Rainfall.Data;
+using Rainfall.Data.Interface;
 using Rainfall.Services.Config;
-using Rainfall.Services.Helper;
 using Rainfall.Services.Interface;
 using System.Net;
 using System.Net.Http.Json;
@@ -10,28 +10,18 @@ namespace Rainfall.Services
 {
     public class RainfallDataService : IRainfallDataService
     {
-        #region Declartions
+        #region Declarations
         private readonly ILogger<RainfallDataService> _logger;
-        private readonly HttpClient _httpClient;
         private readonly IHttpClientWrapper _httpClientWapper;
-        #endregion Declartions
+        #endregion Declarations
 
-        public RainfallDataService(ILogger<RainfallDataService> logger)
+        public RainfallDataService(ILogger<RainfallDataService> logger, IHttpClientWrapper httpClientWrapper)
         {
             _logger = logger;
-            _httpClient = new HttpClient();
-            _httpClientWapper = new HttpClientWrapper(_httpClient);
+            _httpClientWapper = httpClientWrapper;
         }
 
-
-        /// <summary>
-        /// Method to get rainfall from external api
-        /// </summary>
-        /// <param name="stationId"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public async Task<RainfallReadingResponse> GetRainfallDataAsync(string stationId)
+        public async Task<IRainfallResponse> GetRainfallDataAsync(string stationId)
         {
             try
             {
@@ -47,23 +37,75 @@ namespace Rainfall.Services
                 if (response.IsSuccessStatusCode)
                 {
                     // Deserialize the JSON response into appropriate data contract classes
-                    RainfallReadingResponse? rainfallData = await response.Content.ReadFromJsonAsync<RainfallReadingResponse>();
+                    Root? rainfallData = await response.Content.ReadFromJsonAsync<Root>();
 
-                    return rainfallData;
+                    // Check if rainfall data items are null or empty
+                    if (rainfallData != null && (rainfallData.items == null || rainfallData.items.Count == 0))
+                    {
+                        return new RainfallResponse
+                        {
+                            Success = true,
+                            StatusCode = HttpStatusCode.NoContent
+                        };
+                    }
+
+                    // Construct and return success response
+                    return new RainfallResponse
+                    {
+                        Success = true,
+                        StatusCode = HttpStatusCode.OK,
+                        Data = rainfallData
+                    };
                 }
                 else
                 {
-                    // Handle error response (e.g., log error, return null)
-                    _logger.LogWarning(message: Constants.RainfallExternalApiResponseNotOk);
-
-                    // intended throw new web exception
-                    throw new WebException($"{(int)HttpStatusCode.InternalServerError} - {Constants.InternalServerErrorMsg}");
+                    // Handle error response
+                    var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                    return new RainfallResponse
+                    {
+                        Success = false,
+                        StatusCode = response.StatusCode,
+                        Error = errorResponse ?? new ErrorResponse { Message = "Unknown error" }
+                    };
                 }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "An error occurred while making the HTTP request");
+
+                // If an HTTP request error occurs
+                var response = new RainfallResponse
+                {
+                    Success = false,
+                    StatusCode = HttpStatusCode.InternalServerError, // Set the status code to InternalServerError
+                    Error = new ErrorResponse // Populate the Error property with the error response
+                    {
+                        Message = "An error occurred while making the HTTP request"
+                    }
+                };
+
+                // Return the response
+                return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(message: Constants.RainfallServiceErrorMsg, args: ex);
-                throw ex;
+                // Log the exception
+                _logger.LogError(ex, ex.Message);
+
+                // If an unexpected error occurs
+                var response = new RainfallResponse
+                {
+                    Success = false,
+                    StatusCode = HttpStatusCode.InternalServerError, // Set the status code to InternalServerError
+                    Error = new ErrorResponse // Populate the Error property with the error response
+                    {
+                        Message = ex.Message
+                    }
+                };
+
+                // Return the response
+                return response;
             }
         }
     }

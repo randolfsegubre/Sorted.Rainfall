@@ -17,7 +17,7 @@ namespace Rainfall.Services.Config
         #region Error Messages
         public const string RainfallServiceErrorMsg = "RainfallDataService error!";
         public const string RainfallExternalApiResponseNotOk = "Rainfall External Api Response Not Ok!";
-        public const string InternalServerErrorMsg = "Internal Server Error";
+        public const string BadRequestErrorMsg = "Bad Request Error";
         #endregion Error Messages
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace Rainfall.Data.Interfaces
 {
-    public interface IRainfallReadingResponse
+    public interface IRoot
     {
-        string context { get; set; }
+        string Context { get; set; }
         List<Item> items { get; set; }
         Meta meta { get; set; }
     }

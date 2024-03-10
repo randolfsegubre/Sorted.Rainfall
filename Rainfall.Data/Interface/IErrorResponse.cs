@@ -2,7 +2,7 @@
 {
     public interface IErrorResponse
     {
-        List<ErrorDetail> Details { get; set; }
+        List<IErrorDetail> Details { get; set; }
         string Message { get; set; }
     }
 }

@@ -6,6 +6,6 @@ namespace Rainfall.Data
     public class ErrorResponse : IErrorResponse
     {
         public string Message { get; set; }
-        public List<ErrorDetail> Details { get; set; }
+        public List<IErrorDetail> Details { get; set; }
     }
 }

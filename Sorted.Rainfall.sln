@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainfall.WebApp", "Rainfall.WebApp\Rainfall.WebApp.csproj", "{575981C9-4376-4E43-893A-745CA0E7DEC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rainfall.WebApp", "Rainfall.WebApp\Rainfall.WebApp.csproj", "{575981C9-4376-4E43-893A-745CA0E7DEC1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainfall.Data", "Rainfall.Data\Rainfall.Data.csproj", "{250806F7-B007-48F3-9FFD-C8FBBCE38288}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rainfall.Data", "Rainfall.Data\Rainfall.Data.csproj", "{250806F7-B007-48F3-9FFD-C8FBBCE38288}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainfall.Test", "Rainfall.Test\Rainfall.Test.csproj", "{DAB69C7F-22FF-4A9A-86B0-711F3C573435}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rainfall.Test", "Rainfall.Test\Rainfall.Test.csproj", "{DAB69C7F-22FF-4A9A-86B0-711F3C573435}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainfall.Services", "Rainfall.Services\Rainfall.Services.csproj", "{136E4518-02CF-4D7F-B4D8-D90F4821CB9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rainfall.Services", "Rainfall.Services\Rainfall.Services.csproj", "{136E4518-02CF-4D7F-B4D8-D90F4821CB9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
