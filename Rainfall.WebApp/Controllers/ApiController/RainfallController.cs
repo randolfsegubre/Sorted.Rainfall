@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Rainfall.Data;
 using Rainfall.Data.Interface;
 using Rainfall.Services.Interface;
 using System.Net;
@@ -26,6 +25,61 @@ public class RainfallController : ControllerBase
     /// <returns></returns>
     [HttpGet("{stationId}", Name = "GetRainfallReadings")]
     public async Task<IActionResult> GetRainfallReadings(string stationId)
+    {
+        if (string.IsNullOrWhiteSpace(stationId))
+        {
+            return BadRequest("Station ID is required");
+        }
+
+        try
+        {
+            // Call the service method to get rainfall data
+            IRainfallResponse response = await _rainfallDataService.GetRainfallDataAsync(stationId);
+
+            // Check if the operation was successful
+            if (response.Success)
+            {
+                // Check the status code and return the corresponding action
+                switch (response.StatusCode)
+                {
+                    case HttpStatusCode.OK: // 200
+                        return Ok(response);
+                    case HttpStatusCode.NoContent: // 204
+                        return Accepted(response);
+                    default:
+                        return StatusCode((int)response.StatusCode, response);
+                }
+            }
+            else
+            {
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return NotFound(response.Error);
+                }
+                else
+                {
+                    // Handle other error responses
+                    return StatusCode((int)response.StatusCode, response.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log the exception
+            _logger.LogError(ex, "An unexpected error occurred");
+
+            // Return 500 status code response
+            return StatusCode((int)HttpStatusCode.InternalServerError, "An unexpected error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Retrieves rainfall data asynchronously based on the provided station ID.
+    /// </summary>
+    /// <param name="stationId">The station ID for which rainfall data is requested.</param>
+    /// <returns>An IActionResult representing the HTTP response.</returns>
+    [HttpPost]
+    public async Task<IActionResult> PostRainfallDataAsync([FromBody] string stationId)
     {
         if (string.IsNullOrWhiteSpace(stationId))
         {
@@ -73,7 +127,4 @@ public class RainfallController : ControllerBase
             return StatusCode((int)HttpStatusCode.InternalServerError, "An unexpected error occurred");
         }
     }
-
-
-    // Add other controller actions as needed...
 }
