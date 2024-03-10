@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Rainfall.Data;
 using Rainfall.Data.Interface;
-using Rainfall.Data.Interfaces;
 using Rainfall.Services.Config;
-using Rainfall.Services.Helper;
 using Rainfall.Services.Interface;
 using System.Net;
 using System.Net.Http.Json;
@@ -12,10 +10,10 @@ namespace Rainfall.Services
 {
     public class RainfallDataService : IRainfallDataService
     {
-        #region Declartions
+        #region Declarations
         private readonly ILogger<RainfallDataService> _logger;
         private readonly IHttpClientWrapper _httpClientWapper;
-        #endregion Declartions
+        #endregion Declarations
 
         public RainfallDataService(ILogger<RainfallDataService> logger, IHttpClientWrapper httpClientWrapper)
         {
@@ -23,14 +21,6 @@ namespace Rainfall.Services
             _httpClientWapper = httpClientWrapper;
         }
 
-
-        /// <summary>
-        /// Method to get rainfall from external api
-        /// </summary>
-        /// <param name="stationId"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
         public async Task<IRainfallResponse> GetRainfallDataAsync(string stationId)
         {
             try
@@ -48,6 +38,16 @@ namespace Rainfall.Services
                 {
                     // Deserialize the JSON response into appropriate data contract classes
                     Root? rainfallData = await response.Content.ReadFromJsonAsync<Root>();
+
+                    // Check if rainfall data items are null or empty
+                    if (rainfallData != null && (rainfallData.items == null || rainfallData.items.Count == 0))
+                    {
+                        return new RainfallResponse
+                        {
+                            Success = true,
+                            StatusCode = HttpStatusCode.NoContent
+                        };
+                    }
 
                     // Construct and return success response
                     return new RainfallResponse
@@ -108,7 +108,5 @@ namespace Rainfall.Services
                 return response;
             }
         }
-
-
     }
 }

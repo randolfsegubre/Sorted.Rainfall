@@ -1,4 +1,12 @@
-﻿namespace Rainfall.Test.Controllers
+﻿using Microsoft.Extensions.Logging;
+using Moq;
+using Rainfall.Data;
+using Rainfall.Services.Interface;
+using System.Net;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Rainfall.Test.Controllers
 {
     public class RainfallControllerTests
     {
@@ -13,22 +21,22 @@
             _controller = new RainfallController(_loggerMock.Object, _rainfallDataServiceMock.Object);
         }
 
-        [Fact]
-        public async Task GetRainfallData_HappyPath_CorrectStationId_Returns_OkResult()
+        [Theory]
+        [InlineData("station123")]
+        public async Task GetRainfallReadings_HappyPath_CorrectStationId_Returns_OkResult(string stationId)
         {
             // Arrange
-            var expectedStationId = "station123";
             var expectedResponse = new RainfallResponse
             {
                 Success = true,
                 StatusCode = HttpStatusCode.OK,
                 Data = new Root() // Mocked data for happy path
             };
-            _rainfallDataServiceMock.Setup(x => x.GetRainfallDataAsync(expectedStationId))
+            _rainfallDataServiceMock.Setup(x => x.GetRainfallDataAsync(stationId))
                                    .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _controller.GetRainfallData(expectedStationId);
+            var result = await _controller.GetRainfallReadings(stationId);
 
             // Assert
             Assert.IsType<OkObjectResult>(result);
@@ -41,10 +49,10 @@
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task GetRainfallData_UnhappyPath_NoStationId_Returns_BadRequest(string stationId)
+        public async Task GetRainfallReadings_UnhappyPath_NoStationId_Returns_BadRequest(string stationId)
         {
             // Act
-            var result = await _controller.GetRainfallData(stationId);
+            var result = await _controller.GetRainfallReadings(stationId);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
@@ -53,22 +61,22 @@
             Assert.Equal((int)HttpStatusCode.BadRequest, badRequestResult.StatusCode);
         }
 
-        [Fact]
-        public async Task GetRainfallData_UnhappyPath_WrongStationId_Returns_NotFoundResult()
+        [Theory]
+        [InlineData("invalidStationId")]
+        public async Task GetRainfallReadings_UnhappyPath_WrongStationId_Returns_NotFoundResult(string stationId)
         {
             // Arrange
-            var wrongStationId = "invalidStationId";
             var expectedResponse = new RainfallResponse
             {
                 Success = false,
                 StatusCode = HttpStatusCode.NotFound,
                 Error = new ErrorResponse { Message = "Station not found" }
             };
-            _rainfallDataServiceMock.Setup(x => x.GetRainfallDataAsync(wrongStationId))
+            _rainfallDataServiceMock.Setup(x => x.GetRainfallDataAsync(stationId))
                                    .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _controller.GetRainfallData(wrongStationId);
+            var result = await _controller.GetRainfallReadings(stationId);
 
             // Assert
             Assert.IsType<NotFoundObjectResult>(result);

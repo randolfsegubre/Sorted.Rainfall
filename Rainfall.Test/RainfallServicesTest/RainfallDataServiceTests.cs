@@ -17,26 +17,20 @@ namespace Rainfall.Test.RainfallServicesTest
             _configuration = TestHelper.InitConfiguration();
         }
 
+        #region Happy Path
+
         [Fact]
         public async Task GetRainfallDataAsync_HappyPath_CorrectStationId()
         {
             // Arrange
-            var expectedContent = new StringContent(Resource.SortedRainfallApi_Response, Encoding.UTF8, "application/json"); // Set expected content.
-            var expectedData = await expectedContent.ReadFromJsonAsync<Root>(); // Set epected Data
+            var expectedContent = new StringContent(Resource.SortedRainfallApi_Response, Encoding.UTF8, "application/json");
+            var expectedData = await expectedContent.ReadFromJsonAsync<Root>();
 
-            // Create HttpResponseMessage with OK status code and content from JSON string
             var expectedResponse = new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(Resource.SortedRainfallApi_Response, Encoding.UTF8, "application/json")
             };
 
-            var response = new RainfallResponse
-            {
-                Success = true,
-                StatusCode = HttpStatusCode.OK,
-                Data = expectedData
-            };
-    
             _mockHttpClientWrapper.Setup(x => x.GetAsync(It.IsAny<string>()))
                 .ReturnsAsync(expectedResponse);
 
@@ -49,9 +43,15 @@ namespace Rainfall.Test.RainfallServicesTest
             Assert.NotNull(result);
             Assert.True(result.Success);
             Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            Assert.NotNull(result.Data);
             Assert.Equal(expectedData?.Context, result.Data.Context);
+            Assert.NotNull(result.Data.items);
             Assert.True(result.Data.items.Any());
         }
+
+        #endregion Happy Path
+
+        #region Unhappy Path
 
         [Theory]
         [InlineData("wrongStationId")]
@@ -62,7 +62,7 @@ namespace Rainfall.Test.RainfallServicesTest
             _mockHttpClientWrapper.Setup(x => x.GetAsync(It.IsAny<string>()))
                 .ThrowsAsync(new HttpRequestException()); // Simulate exception
 
-            var rainfallService = new RainfallDataService(_mockLogger.Object, _mockHttpClientWrapper.Object    );
+            var rainfallService = new RainfallDataService(_mockLogger.Object, _mockHttpClientWrapper.Object);
 
             // Act
             var result = await rainfallService.GetRainfallDataAsync(stationId);
@@ -94,6 +94,7 @@ namespace Rainfall.Test.RainfallServicesTest
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             Assert.Equal(expectedErrorMessage, response.Error.Message);
         }
+
+        #endregion Unhappy Path
     }
 }
-

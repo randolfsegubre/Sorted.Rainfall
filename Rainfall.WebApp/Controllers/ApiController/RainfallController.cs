@@ -25,9 +25,9 @@ public class RainfallController : ControllerBase
     /// <param name="stationId"></param>
     /// <returns></returns>
     [HttpGet("{stationId}", Name = "GetRainfallReadings")]
-    public async Task<IActionResult> GetRainfallData(string stationId)
+    public async Task<IActionResult> GetRainfallReadings(string stationId)
     {
-        if (string.IsNullOrEmpty(stationId))
+        if (string.IsNullOrWhiteSpace(stationId))
         {
             return BadRequest("Station ID is required");
         }
